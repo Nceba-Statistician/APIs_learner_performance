@@ -3,6 +3,7 @@ from  fastapi import FastAPI, HTTPException
 import pyodbc
 import warnings
 from fastapi.middleware.cors import CORSMiddleware
+from itemsprocessing import processed_lp
 
 warnings.filterwarnings("ignore")
 conn = pyodbc.connect(
@@ -29,9 +30,14 @@ def get_db_connection():
     except pyodbc.Error as e:
         print(f"Error connecting to database {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
+    
 @app.get("/")
 async def read_root():
     return {"fastapi"}
+
+@app.get("/items_processed") 
+async def read_items_processed():
+    return processed_lp
 
 @app.get("/items_get")
 async def read_items():
@@ -46,6 +52,7 @@ async def read_items():
             "Volunteering": item.Volunteering, "GPA": item.GPA, "GradeClass": item.GradeClass
         } for item in items
     ]
+    
 @app.post("/items_post")
 async def create_items(
     StudentID: int, Age: int, Gender: bool, Ethnicity: int, ParentalEducation: int, StudyTimeWeekly: float,
@@ -69,6 +76,7 @@ async def create_items(
             "Volunteering": Volunteering, "GPA": GPA, "GradeClass": GradeClass
         }
     ]
+    
 @app.put("/items_put")
 async def update_items(
     StudentID: int, Age: int, Gender: bool, Ethnicity: int, ParentalEducation: int, StudyTimeWeekly: float,
@@ -100,6 +108,7 @@ where StudentID = ?
     )
     conn.commit()
     return {"message":"Object updated succesfully!"}
+
 @app.delete("/items_delete")
 async def delete_items(
     StudentID: int
@@ -113,3 +122,4 @@ if __name__=="_main_":
     uvicorn.run(app)
 
 # uvicorn itemsapi:app --host 127.0.0.1 --port 8000
+# uvicorn itemsapi:app --reload
